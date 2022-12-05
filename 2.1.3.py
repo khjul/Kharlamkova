@@ -339,7 +339,7 @@ class Report(InputConnect):
 
 input_file_name = input("Введите название файла: ")
 input_profession_name = input("Введите название профессии: ")
-user_input = input("Вакансии или статистика? ").lower()
+user_input = input("Вакансии и статистика? ").lower()
 
 dataset_vacancies = DataSet.get_dataset(file_name=input_file_name)
 InputConnect.print(InputConnect(input_file_name=input_file_name, input_profession_name=input_profession_name),
