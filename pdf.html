@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report</title>
+    <style>
+        BODY {text-align: center; font-family: Verdana}
+        TABLE {border: 1px solid grey; border-collapse: collapse}
+        TD {border: 1px solid black; padding: 5px}
+        TH {border: 1px solid black; padding: 5px}
+    </style>
+</head>
+
+<body>
+    <h1>Аналитика по зарплатам и городам для профессии {{ profession }}</h1>
+    <img src="{{ image_file }}">
+    <h2>Статистика по годам</h2>
+        <table style="width: 100%">
+            <tr>
+                <th>Год</th>
+                <th>Средняя зарплата</th>
+                <th>Средняя зарплата - {{ profession }}</th>
+                <th>Количество вакансий</th>
+                <th>Количество вакансий - {{ profession }}</th>
+            </tr>
+            {% for column in rows %}
+                <tr>
+                    <td>{{ column[0] }}</td>
+                    <td>{{ column[1] }}</td>
+                    <td>{{ column[2] }}</td>
+                    <td>{{ column[3] }}</td>
+                    <td>{{ column[4] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+    <h2>Статистика по городам</h2>
+        <table style="width: 49%; float: left;">
+            <tr>
+                <th>Город</th>
+                <th>Уровень зарплат</th>
+            </tr>
+            {% for city, salary in salary_level_by_cities_first_ten.items() %}
+                <tr>
+                    <td>{{ city }}</td>
+                    <td>{{ salary }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table style="width: 49%; float: right;">
+            <tr>
+                <th>Город</th>
+                <th>Доля вакансий</th>
+            </tr>
+            {% for city, part_vacansies in proportion_vacancy_by_cities_first_ten.items() %}
+                <tr>
+                    <td>{{ city }}</td>
+                    <td>{{ part_vacansies }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+</body>
+</html>
