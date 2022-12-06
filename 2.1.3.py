@@ -24,11 +24,29 @@ currency_to_rub = {
     "UZS": 0.0055}
 
 class DataSet:
+    """Класс для получения данных из CSV файла.
+
+    Attriburies:
+        file_name (str): название файла
+        vacancies_objects (list): список со всеми вакансиями и информацией по ним
+    """
     def __init__(self, file_name):
+        """Инициализирует объект DataSet
+
+        Args:
+            file_name (str): название файла
+            vacancies_objects (list): список со всеми вакансиями и информацией по ним
+        """
         self.file_name = file_name
         self.vacancies_objects = list()
 
     def get_dataset(file_name):
+        """Считывает и фильтрует CSV файл, формирует объекты класса Vacancy, добавляет эти объекты в список
+
+        :param file_name: название файла (str)
+        :return:
+            DataSet: объект класса DataSet
+        """
         dataset = DataSet(file_name)
         dictionary_list = DataSet.csv_filter(DataSet.csv_reader(file_name)[0], DataSet.csv_reader(file_name)[1])
         for vacancy in dictionary_list:
@@ -42,6 +60,12 @@ class DataSet:
         return dataset
 
     def csv_reader(file_name):
+        """Считывает CSV файл и создает список с заголовками и список с объектами Vacancy
+
+        :return:
+            str: Список с заголовками
+            list: Список списков с информацией о вакансиях
+        """
         with open(file_name, mode='r', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
             data = [line for line in reader]
@@ -49,10 +73,16 @@ class DataSet:
             print("Пустой файл")
             exit(0)
         headings = data[0]
-        line = data[1:]
-        return headings, line
+        lines = data[1:]
+        return headings, lines
 
     def string_filter(str_with_tags):
+        """Очищает строку от HTML-тэгов.
+
+        :param str_with_tags: строка (str)
+        :return:
+            str: строка без HTML-тэгов
+        """
         result = re.sub("<.*?>", '', str_with_tags)
         if ('\n' in str_with_tags):
             return result
@@ -60,7 +90,22 @@ class DataSet:
             return " ".join(result.split())
 
     def csv_filter(headings, lines):
+        """Фильтрует и формирует список из строк файла
+
+        :param headings: Список заголовков CSV файла
+        :param lines: Список строк с информацией о вакансиях
+        :return:
+            list: Список словараей, где
+                                        ключ: заголовок
+                                        значение: значение в строке под этим заголовком
+        """
         def check(line):
+            """Проверяет на совпадение количества элементов строки с количеством заголовоков
+                и на наличие пустых элементов в строке.
+            :param line: строка из файла
+            :return:
+                bool: True or False
+            """
             return (len(line) == len(headings) and line.count('') == 0)
 
         vacancies_list = list(filter(check, lines))
@@ -68,7 +113,21 @@ class DataSet:
         return dictionary_vacancies_list
 
 class Vacancy:
+    """Класс для представления вакансии.
+
+    Attributes:
+        name (str): Название вакансии
+        salary_from (float): Нижняя граница оклада
+        salary_to (float): Верхняя граница оклада
+        salary_currency (str): Валюта
+        area_name (str): Название региона
+        published_at (str): Дата публикации вакансии
+    """
     def __init__(self, args):
+        """Инициализирует объект Vacancy.
+
+        :param args: список строк с информацией о вакансии
+        """
         self.name = args[0]
         self.salary_from = float(args[1])
         self.salary_to = float(args[2])
@@ -77,16 +136,36 @@ class Vacancy:
         self.published_at = args[5]
 
 class InputConnect:
+    """Отвечает за обработку параметров вводимых пользователем и формирует отчет."""
     def __init__(self, input_file_name, input_profession_name):
+        """Инициализирует объект InputConnect.
+
+        :param input_file_name: введенное пользователем имя файла
+        :param input_profession_name: введенное пользователем название профессии
+        """
         self.file_name_init = input_file_name
         self.prof_name_init = input_profession_name
 
     def get_right_course(vacancy):
+        """С помощью словаря currency_to_rub переводит зарплату в рубли и вычисляет среднюю зарплату.
+
+        :param vacancy: объект класса Vacancy
+        :return
+            int: средняя зарплата
+        """
         salary = int((vacancy.salary_from * currency_to_rub[vacancy.salary_currency]
                       + vacancy.salary_to * currency_to_rub[vacancy.salary_currency]) / 2)
         return salary
 
     def get_count_vacancies(data: DataSet, parametr):
+        """Считает количество всех вакансий.
+
+        :param parametr: параметр, определяющий необходимость подсчета количества всех вакансий
+        :return:
+            dict: словарь, где
+                                ключ: год
+                                значение: количество вакансий за этот год
+        """
         count_vacancies = dict()
         for vacancy in data.vacancies_objects:
             if parametr == "all":
@@ -99,6 +178,14 @@ class InputConnect:
         return count_vacancies
 
     def get_count_vacancies_by_profession(data: DataSet, profession):
+        """Считает количество вакансий по заданной профессии.
+
+        :param profession: название профессии
+        :return:
+            dict: словарь, где
+                                ключ: год
+                                значение: количество вакансий заданной профессии за этот год
+        """
         count_vacancies_by_profession = dict()
         for vacancy in data.vacancies_objects:
             if vacancy.name.__contains__(profession):
@@ -111,6 +198,14 @@ class InputConnect:
         return count_vacancies_by_profession
 
     def get_general_salary_level_by_year(data: DataSet, parametr):
+        """Считает зарплату всех вакансий.
+
+        :param parametr: параметр, определяющий необходимость подсчета зарплаты всех вакансий
+        :return:
+            dict: словарь, где
+                                ключ: год
+                                значение: зарплата за этот год
+        """
         general_salary_level_by_year = dict()
         for vac in data.vacancies_objects:
             if general_salary_level_by_year.__contains__(vac.published_at):
@@ -126,6 +221,14 @@ class InputConnect:
         return general_salary_level_by_year
 
     def get_salary_level_by_profession(data: DataSet, profession):
+        """Считает зарплату для заданной профессии.
+
+        :param profession: название профессии
+        :return:
+            dict: словарь, где
+                                ключ: год
+                                значение: зарплата заданной профессии за этот год
+        """
         salary_level_by_profession = dict()
         for vacancy in data.vacancies_objects:
             if vacancy.name.__contains__(profession):
@@ -142,6 +245,14 @@ class InputConnect:
         return salary_level_by_profession
 
     def get_proportion_vacancy_by_cities(data: DataSet):
+        """Считает долю вакансий в городах, в которых кол-во вакансий больше или равно 1% от общего числа вакансий
+
+        :param data: объект класса DataSet
+        :return:
+            dict: словарь, где
+                                ключ: город
+                                значение: доля вакансий в этом городе
+        """
         proportion_vacancy_by_cities = dict()
         for vacancy in data.vacancies_objects:
             if proportion_vacancy_by_cities.__contains__(vacancy.area_name):
@@ -151,6 +262,14 @@ class InputConnect:
         return proportion_vacancy_by_cities
 
     def get_salary_level_by_cities(data: DataSet):
+        """Считает уровень зарплаты в городах, в которых кол-во вакансий больше или равно 1% от общего числа вакансий
+
+        :param data: объект класса DataSet
+        :return:
+            dict: словарь, где
+                                ключ: город
+                                значение: уровень зарплаты в этом городе
+        """
         salary_level_by_cities = dict()
         for vacancy in data.vacancies_objects:
             if math.floor(
@@ -166,6 +285,14 @@ class InputConnect:
         return result
 
     def get_right_proportion_vacancy_by_cities(data: DataSet):
+        """Пересчитывает верную долю вакансий в городах, в которых кол-во вакансий больше или равно 1% от общего числа вакансий
+
+        :param data: объект класса DataSet
+        :return:
+            dict: словарь, где
+                                ключ: город
+                                значение: доля вакансий в этом городе
+        """
         data.proportion_vacancy_by_cities = {k: round(v / len(data.vacancies_objects), 4)
                                              for k, v in data.proportion_vacancy_by_cities.items()}
         data.proportion_vacancy_by_cities = {k: v for k, v in data.proportion_vacancy_by_cities.items()
@@ -174,6 +301,19 @@ class InputConnect:
                 sorted(data.proportion_vacancy_by_cities.items(), key=lambda item: item[1], reverse=True)}
 
     def print(self, data: DataSet):
+        """
+        Вычисляет все словари со всей информацией и возращает их для обработки при составлении графика, таблицы и pdf файла.
+        :param self: объект класса InputConnect
+        :param data: объект класса DataSet
+
+        :return:
+            dict: Динамика уровня зарплат по годам
+            dict: Динамика количества вакансий по годам
+            dict: Динамика уровня зарплат по годам для выбранной профессии
+            dict: Динамика количества вакансий по годам для выбранной профессии
+            dict: Уровень зарплат по городам (в порядке убывания) - только первые 10 значений
+            dict: Доля вакансий по городам (в порядке убывания) - только первые 10 значений
+        """
         data.general_count_vacancies_by_year = InputConnect.get_count_vacancies(data, "all")
         data.general_salary_level_by_year = InputConnect.get_general_salary_level_by_year(data, "all")
 
@@ -191,7 +331,22 @@ class InputConnect:
         return data.general_salary_level_by_year, data.general_count_vacancies_by_year, data.salary_level_by_profession, data.count_vacancies_by_profession, data.salary_level_by_cities_first_ten, data.proportion_vacancy_by_cities_first_ten
 
 class Report(InputConnect):
+    """Класс для формирования отчетности: Excel-таблицы, графиков и общего отчета в виде pdf-файла.
+
+    Attribures:
+        InputConnect: объект класса InputConnect.
+    """
     def __init__(self, dict1, dict2, dict3, dict4 ,dict5, dict6):
+        """Инициализирует объект Report.
+
+        Args:
+            dict1 (dict): словарь с динамикой уровня зарплат по годам
+            dict2 (dict): словарь с динамикой количества вакансий по годам
+            dict3 (dict): словарь с динамикой уровня зарплат по годам для выбранной профессии
+            dict4 (dict): словарь с динамикой количества вакансий по годам для выбранной профессии
+            dict5 (dict): словарь с уровенем зарплат по городам (в порядке убывания) - только первые 10 значений
+            dict6 (dict): словарь с долей вакансий по городам (в порядке убывания) - только первые 10 значений
+        """
         self.general_salary_level_by_year = dict1
         self.general_count_vacancies_by_year = dict2
         self.salary_level_by_profession = dict3
@@ -200,11 +355,19 @@ class Report(InputConnect):
         self.proportion_vacancy_by_cities_first_ten = dict6
 
     def as_text(val):
+        """Преобразует значение в строку (str)
+
+        :return:
+            str: если значение не None
+        """
         if val is None:
             return ""
         return str(val)
 
     def generate_excel(self):
+        """Генерирует отчет в виде excel-файла.
+            На первом листе отображается статистика по годам, на втором листе - статистика по городам.
+        """
         wb = Workbook()
         sheet1 = wb.active
         thin = Side(border_style='thin', color='000000')
@@ -264,6 +427,8 @@ class Report(InputConnect):
         wb.save('report1.xlsx')
 
     def generate_image(self):
+        """Генерирует отчет в виде изображения с графиками, сохраняя его в .png файл.
+        """
         fig = plt.figure()
 
         ax_1 = fig.add_subplot(2, 2, 1)
@@ -308,9 +473,10 @@ class Report(InputConnect):
         ax_4.axis('equal')
 
         plt.tight_layout()
-        plt.savefig('graph1.png')
+        plt.savefig('graph.png')
 
     def generate_pdf(self):
+        """Генерирует отчет с графиками и таблицами в виде .pdf файла."""
         env = Environment(loader=FileSystemLoader('../homework python'))
         template = env.get_template('pdf.html')
 
