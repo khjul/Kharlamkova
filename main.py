@@ -6,6 +6,7 @@ import numpy as np
 import wkhtmltopdf
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
+import doctest
 
 import openpyxl
 from openpyxl import Workbook
@@ -46,6 +47,26 @@ class DataSet:
         :param file_name: название файла (str)
         :return:
             DataSet: объект класса DataSet
+
+        >>> dataset = DataSet.get_dataset("vacancies_by_year.csv")
+        >>> type(dataset.vacancies_objects[0]).__name__
+        'Vacancy'
+
+        >>> dataset = DataSet.get_dataset("vacancies_by_year.csv")
+        >>> len(dataset.vacancies_objects)
+        927145
+
+        >>> dataset = DataSet.get_dataset("vacancies_by_year.csv")
+        >>> dataset.vacancies_objects[0].salary_from
+        35000.0
+
+        >>> dataset = DataSet.get_dataset("vacancies_by_year.csv")
+        >>> dataset.vacancies_objects[0].salary_to
+        45000.0
+
+        >>> dataset = DataSet.get_dataset("vacancies_by_year.csv")
+        >>> dataset.vacancies_objects[0].published_at
+        2007
         """
         dataset = DataSet(file_name)
         dictionary_list = DataSet.csv_filter(DataSet.csv_reader(file_name)[0], DataSet.csv_reader(file_name)[1])
@@ -65,6 +86,13 @@ class DataSet:
         :return:
             str: Список с заголовками
             list: Список списков с информацией о вакансиях
+        >>> data = DataSet.csv_reader("vacancies_by_year.csv")
+        >>> len(data[0])
+        6
+
+        >>> data = DataSet.csv_reader("vacancies_by_year.csv")
+        >>> len(data[1])
+        927145
         """
         with open(file_name, mode='r', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
@@ -82,7 +110,15 @@ class DataSet:
         :param str_with_tags: строка (str)
         :return:
             str: строка без HTML-тэгов
+
+        >>> DataSet.string_filter('<h1> string </h1>')
+        'string'
+        >>> DataSet.string_filter('<br> second string')
+        'second string'
+        >>> DataSet.string_filter('third <br> string')
+        'third string'
         """
+
         result = re.sub("<.*?>", '', str_with_tags)
         if ('\n' in str_with_tags):
             return result
@@ -142,7 +178,15 @@ class InputConnect:
 
         :param input_file_name: введенное пользователем имя файла
         :param input_profession_name: введенное пользователем название профессии
+
+        >>> type(InputConnect('vacancies_by_year.csv', 'Программист')).__name__
+        'InputConnect'
+        >>> InputConnect('vacancies_by_year.csv', 'Программист').file_name_init
+        'vacancies_by_year.csv'
+        >>> InputConnect('vacancies_by_year.csv', 'Программист').prof_name_init
+        'Программист'
         """
+
         self.file_name_init = input_file_name
         self.prof_name_init = input_profession_name
 
@@ -152,6 +196,14 @@ class InputConnect:
         :param vacancy: объект класса Vacancy
         :return
             int: средняя зарплата
+
+        >>> InputConnect.get_right_course(Vacancy(args=['Программист баз данных', '36000', '50000', 'RUR', 'Москва', '2007']))
+        43000
+        >>> InputConnect.get_right_course(Vacancy(args=['Программист баз данных', '40000', '80000', 'EUR', 'Москва', '2007']))
+        3594000
+        >>> InputConnect.get_right_course(Vacancy(args=['Программист баз данных', '30000', '60000', 'UAH', 'Москва', '2007']))
+        73800
+
         """
         salary = int((vacancy.salary_from * currency_to_rub[vacancy.salary_currency]
                       + vacancy.salary_to * currency_to_rub[vacancy.salary_currency]) / 2)
@@ -297,8 +349,7 @@ class InputConnect:
                                              for k, v in data.proportion_vacancy_by_cities.items()}
         data.proportion_vacancy_by_cities = {k: v for k, v in data.proportion_vacancy_by_cities.items()
                                              if math.floor(v * 100 >= 1)}
-        return {k: v for k, v in
-                sorted(data.proportion_vacancy_by_cities.items(), key=lambda item: item[1], reverse=True)}
+        return {k: v for k, v in sorted(data.proportion_vacancy_by_cities.items(), key=lambda item: item[1], reverse=True)}
 
     def print(self, data: DataSet):
         """
@@ -377,17 +428,17 @@ class Report(InputConnect):
 
         border = Border(left=thin, top=thin, right=thin, bottom=thin)
 
-        heads1 = ['Год', 'Динамика уровня зарплат по годам',
-                  f'Динамика уровня зарплат по годам для выбранной профессии - {prof}',
-                  'Динамика количества вакансий по годам', f'Динамика количества вакансий по годам для выбранной профессии - {prof}']
+        heads1 = ['Год', 'Средняя зарплата',
+                  f'Средняя зарплата - {prof}',
+                  'Количество вакансий по годам', f'Количество вакансий по годам - {prof}']
 
         for i, head in enumerate(heads1):
             sheet1.cell(row = 1, column = (i + 1), value = head).font = Font(bold=True)
 
         year = list(self.general_salary_level_by_year.keys())[0]
         for i in range(len(self.general_salary_level_by_year)):
-            sheet1.append([year, self.general_salary_level_by_year[year], self.general_count_vacancies_by_year[year],
-                           self.salary_level_by_profession[year], self.count_vacancies_by_profession[year]])
+            sheet1.append([year, self.general_salary_level_by_year[year], self.salary_level_by_profession[year],
+                           self.general_count_vacancies_by_year[year], self.count_vacancies_by_profession[year]])
             year += 1
 
         for column in sheet1.columns:
@@ -424,7 +475,7 @@ class Report(InputConnect):
             sheet2[f'D{i}'].border = border
             sheet2[f'E{i}'].border = border
 
-        wb.save('report1.xlsx')
+        wb.save('report.xlsx')
 
     def generate_image(self):
         """Генерирует отчет в виде изображения с графиками, сохраняя его в .png файл.
@@ -477,16 +528,16 @@ class Report(InputConnect):
 
     def generate_pdf(self):
         """Генерирует отчет с графиками и таблицами в виде .pdf файла."""
-        env = Environment(loader=FileSystemLoader('../homework python'))
+        env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template('pdf.html')
 
         profession = input_profession_name
-        image_file = 'C:\\Users\\kh_ju\\homework python\\graph.png'
+        image_file = 'C:\\Users\\kh_ju\\homework python\\Kharlamkova\\graph.png'
 
         rows = []
         for year in general_salary_level_by_year.keys():
-            rows.append([year, general_salary_level_by_year[year], general_count_vacancies_by_year[year],
-                         salary_level_by_profession[year], count_vacancies_by_profession[year]])
+            rows.append([year, general_salary_level_by_year[year], salary_level_by_profession[year],
+                         general_count_vacancies_by_year[year], count_vacancies_by_profession[year]])
 
         for key, value in proportion_vacancy_by_cities_first_ten.items():
             value = f'{round(value * 100, 2)}%'
@@ -524,8 +575,6 @@ proportion_vacancy_by_cities_first_ten = dicts[5]
 report = Report(dict1=general_salary_level_by_year, dict2=general_count_vacancies_by_year,
                              dict3=salary_level_by_profession, dict4=count_vacancies_by_profession,
                              dict5=salary_level_by_cities_first_ten, dict6=proportion_vacancy_by_cities_first_ten)
-
-
 
 if user_input == 'вакансии':
     Report.generate_image(report)
