@@ -17,3 +17,6 @@
 ![](profiling/get_year_2.png)
 
 Оставляем первый вариант.
+
+# Задание 3.2.1
+![](csv_split_files/files.png)
