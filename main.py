@@ -3,10 +3,11 @@ import math
 import re
 import matplotlib.pyplot as plt
 import numpy as np
-import wkhtmltopdf
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
-import doctest
+import cProfile
+from time import strptime
+from _datetime import datetime
 
 import openpyxl
 from openpyxl import Workbook
@@ -40,6 +41,15 @@ class DataSet:
         """
         self.file_name = file_name
         self.vacancies_objects = list()
+
+    def get_year(published_at):
+        return int(published_at[:4])
+
+    # def get_year_1(published_at):
+    #     return datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%S%z").year
+
+    # def get_year_2(published_at):
+    #     return datetime(int(published_at[:4]), int(published_at[5:7]), int(published_at[8:10])).year
 
     def get_dataset(file_name):
         """Считывает и фильтрует CSV файл, формирует объекты класса Vacancy, добавляет эти объекты в список
@@ -76,7 +86,7 @@ class DataSet:
                                f"{vacancy['salary_currency']}",
                                f"{vacancy['area_name']}",
                                f"{vacancy['published_at']}"])
-            vacancy.published_at = int(vacancy.published_at[:4])
+            vacancy.published_at = DataSet.get_year(vacancy.published_at)
             dataset.vacancies_objects.append(vacancy)
         return dataset
 
@@ -554,32 +564,36 @@ class Report(InputConnect):
         config = pdfkit.configuration(wkhtmltopdf=r'C:\Users\kh_ju\homework python\wkhtmltopdf\bin\wkhtmltopdf.exe')
         pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": ""})
 
-input_file_name = input("Введите название файла: ")
-input_profession_name = input("Введите название профессии: ")
-user_input = input("Статистика или вакансии? ").lower()
+if __name__ == '__main__':
+    input_file_name = input("Введите название файла: ")
+    input_profession_name = input("Введите название профессии: ")
+    user_input = input("Статистика или вакансии? ").lower()
+    profile = cProfile.Profile()
+    profile.enable()
+    dataset_vacancies = DataSet.get_dataset(file_name=input_file_name)
+    InputConnect.print(InputConnect(input_file_name=input_file_name, input_profession_name=input_profession_name),
+                       dataset_vacancies)
 
-dataset_vacancies = DataSet.get_dataset(file_name=input_file_name)
-InputConnect.print(InputConnect(input_file_name=input_file_name, input_profession_name=input_profession_name),
-                   dataset_vacancies)
+    dicts = InputConnect.print(InputConnect(input_file_name=input_file_name, input_profession_name=input_profession_name),
+                               dataset_vacancies)
 
-dicts = InputConnect.print(InputConnect(input_file_name=input_file_name, input_profession_name=input_profession_name),
-                           dataset_vacancies)
+    general_salary_level_by_year = dicts[0]
+    general_count_vacancies_by_year = dicts[1]
+    salary_level_by_profession = dicts[2]
+    count_vacancies_by_profession = dicts[3]
+    salary_level_by_cities_first_ten = dicts[4]
+    proportion_vacancy_by_cities_first_ten = dicts[5]
 
-general_salary_level_by_year = dicts[0]
-general_count_vacancies_by_year = dicts[1]
-salary_level_by_profession = dicts[2]
-count_vacancies_by_profession = dicts[3]
-salary_level_by_cities_first_ten = dicts[4]
-proportion_vacancy_by_cities_first_ten = dicts[5]
+    report = Report(dict1=general_salary_level_by_year, dict2=general_count_vacancies_by_year,
+                                 dict3=salary_level_by_profession, dict4=count_vacancies_by_profession,
+                                 dict5=salary_level_by_cities_first_ten, dict6=proportion_vacancy_by_cities_first_ten)
 
-report = Report(dict1=general_salary_level_by_year, dict2=general_count_vacancies_by_year,
-                             dict3=salary_level_by_profession, dict4=count_vacancies_by_profession,
-                             dict5=salary_level_by_cities_first_ten, dict6=proportion_vacancy_by_cities_first_ten)
-
-if user_input == 'вакансии':
-    Report.generate_image(report)
-elif user_input == 'статистика':
-    Report.generate_excel(report)
+    if user_input == 'вакансии':
+        Report.generate_image(report)
+    elif user_input == 'статистика':
+        Report.generate_excel(report)
+    profile.disable()
+    profile.print_stats(1)
 
 
 
