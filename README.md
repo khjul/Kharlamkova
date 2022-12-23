@@ -1,7 +1,8 @@
 # Задание 2.3.2. Тестирование
-![](tests result/test_1.png)
-![](tests result/tests_2.png)
-![](tests result/tests_3.png)
+
+![](tests_results/test_1.png)
+![](tests_results/tests_2.png)
+![](tests_results/tests_3.png)
 
 # Задание 2.3.3. Профилирование
 ![](profiling/img_1.png)
