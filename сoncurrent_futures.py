@@ -1,4 +1,5 @@
 import cProfile
+import concurrent
 from _datetime import datetime
 import multiprocessing
 import pandas as pd
@@ -26,13 +27,14 @@ class DataSet:
         profession = "Программист"
         return file_name, profession
 
-    def get_not_multiproc(self):
-        """Обрабатывает и данные из файлов и сохраняет без использования многопроцессорности.
-        """
-        name = os.listdir(self.file_name)
-        self.data = map(self.get_data_file, name)
+    def get_analytics(self):
+        """Обрабатывает и данные из файлов и сохраняет, используя Concurrent futures"""
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            name = os.listdir(self.file_name)
+            for result_data in executor.map(self.get_data_file, name):
+                self.data.append(result_data)
 
-    def get_multiproc(self):
+    def get_сoncurrent_futures(self):
         """Обрабатывает и данные из файлов и сохраняет, используя многопроцессорность.
         """
         with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as p:
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     profile = cProfile.Profile()
     profile.enable()
     data_analitics = DataSet()
-    data_analitics.get_multiproc()
+    data_analitics.get_сoncurrent_futures()
     data_analitics.print()
     profile.disable()
     profile.print_stats(1)

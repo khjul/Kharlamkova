@@ -26,3 +26,6 @@
 ![](img/multiproc.png)
 Без многопроцессорной обработки 
 ![](img/not_multiproc.png)
+
+# Задание 3.2.3
+![](img/сoncurrent_futures.png)
