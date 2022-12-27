@@ -1,5 +1,7 @@
 import requests
 from pandas import json_normalize
+# import pandas as pd
+# pd.set_option("expand_frame_repr", False)
 
 urls = []
 urls += [
@@ -19,4 +21,5 @@ for url in urls:
 
 dataFrame = json_normalize(vacancies)
 vacanciesHH = dataFrame[["name", "salary.from", "salary.to", "salary.currency", "area.name", "published_at"]]
+vacanciesHH.columns = vacanciesHH.columns.str.replace(".", "_", regex=True)
 vacanciesHH.to_csv("vacanciesHH_2022-12-25.csv", index=False, encoding='utf-8-sig')
