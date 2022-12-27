@@ -4,7 +4,6 @@ import grequests
 from datetime import datetime
 from xml.etree import ElementTree
 
-
 class Currency:
     """Класс для формирования CSV-файла с курсами валют.
 

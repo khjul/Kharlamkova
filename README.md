@@ -29,3 +29,6 @@
 
 # Задание 3.2.3
 ![](img/сoncurrent_futures.png)
+
+# Задание 3.3.1
+![](img/3.3.1.png)
