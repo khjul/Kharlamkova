@@ -1,7 +1,5 @@
 import requests
 from pandas import json_normalize
-# import pandas as pd
-# pd.set_option("expand_frame_repr", False)
 
 urls = []
 urls += [
