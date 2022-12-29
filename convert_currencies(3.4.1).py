@@ -29,7 +29,6 @@ class Converter:
             if not np.isnan(course[0]):
                 return round(course[0] * float(data[0]))
         return salary
-
     def get_converted_data(self):
         """Подготавливает данные для CSV-файла.
         """
@@ -41,11 +40,11 @@ class Converter:
         self.file_name = self.file_name.drop(columns=['salary_from', 'salary_to', 'salary_currency'])
 
     def make_csv(self):
-        """Создает CSV-файл, включающий информацию о 100 вакансиях.
+        """Создает CSV-файл.
         """
         self.get_converted_data()
-        converted_currencies = self.file_name.head(100)
-        converted_currencies.to_csv("converted_vacancies_dif_currencies(3.4.1).csv", index=False, encoding='utf-8-sig')
+        converted_currencies = self.file_name.head(4074961)
+        converted_currencies.to_csv("full_converted_vacancies_dif_currencies(3.4.1).csv", index=False, encoding='utf-8-sig')
 
 file_name = "vacancies_dif_currencies.csv"
 converter_file_name = "currency_2003-2022.csv"
