@@ -20,6 +20,8 @@ class Converter:
         :return: сконвертированная зарплата
         """
         data = salary.split()
+        if pd.isnull(salary):
+            return salary
         currency = data[1]
         if currency in converter_file.columns:
             date = data[2]
