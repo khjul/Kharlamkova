@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аналитика по годам</title>
+    <style>
+        BODY {text-align: center; font-family: Verdana}
+        table {margin: 0 auto; width: 100%;border-collapse: collapse }
+        th { border: 1px solid black; padding: 5px; text-align: center }
+        td{ border: 1px solid black; padding: 5px; text-align: center }
+    </style>
+</head>
+
+<body>
+    <h1>Аналитика для профессии {{ profession }}</h1>
+    <table>
+        <tr>
+            <th>Год</th>
+            <th>Средняя зарплата</th>
+            <th>Средняя зарплата - {{ profession }}</th>
+            <th>Количество вакансий</th>
+            <th>Количество вакансий - {{ profession }}</th>
+        </tr>
+        {% for row in data %}
+            <tr>
+                <th>{{row[0]}}</th>
+                <th>{{row[1]}}</th>
+                <th>{{row[2]}}</th>
+                <th>{{row[3]}}</th>
+                <th>{{row[4]}}</th>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
