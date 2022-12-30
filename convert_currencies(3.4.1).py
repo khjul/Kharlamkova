@@ -19,8 +19,6 @@ class Converter:
         :param: converter_file: файл для преобразования валют
         :return: сконвертированная зарплата
         """
-        if pd.isnull(salary):
-            return salary
         data = salary.split()
         currency = data[1]
         if currency in converter_file.columns:
